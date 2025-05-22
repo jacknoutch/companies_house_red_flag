@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="{{ url_for('handle_data') }}" method="POST">
+        <label for="company_number">Company Number:</label>
+        <input type="text" id="company_number" name="company_number" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if context.company_data %}
+        <h2>{{ context.company_name }}</h2>
+
+        {% if context.previous_company_names %}
+
+            <em>Also previously known as:</em>
+            <ul>
+                {% for entry in context.previous_company_names %}
+                    <li>{{ entry.name }} - ({{ entry.effective_from | format_date }} to {{ entry.ceased_on | format_date}})</li>
+                {% endfor %}
+            </ul>
+        
+        {% endif %}
+
+        <h3>Officers</h3>
+        
+        {% if context.officers_data %}
+        
+            <ul>
+                
+                {% for item in context.officers_data['items'] %}
+                    <li>{{ item.name }} - {{ item.officer_role }} from {{ item.appointed_on | format_date }} to {% if item.resigned_on %} {{ item.resigned_on | format_date }} {% else %} present {% endif %}</li>
+                {% endfor %}
+
+                <pre>{{ context.officers_data | tojson(indent=2) }}</pre>
+
+            </ul>
+        
+        {% else %}
+        
+            <p>No officers found.</p>
+
+        {% endif %}
+
+        {% if context.registered_office_address %}
+            <h4>Registered Office Address</h4>
+            <p>{{ context.registered_office_address }}</p>
+        {% else %}
+            <p>No registered office address found.</p>
+        
+        {% endif %}
+
+        <pre>{{ context.company_data | tojson(indent=2) }}</pre>
+    {% endif %}
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+{% endblock %}
