@@ -10,7 +10,7 @@
 
             {% for item in context.company_data["items"] %}
             
-                <li>{{ item.title }}</li>
+                <li><a href="{{ url_for('index', company_number=item.company_number) }}">{{ item.title }}</a></li>
             
             {% endfor %}
 
