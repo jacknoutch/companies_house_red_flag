@@ -25,7 +25,7 @@
             <ul>
                 
                 {% for item in context.officers_data['items'] %}
-                    <li>{{ item.name }} - {{ item.officer_role }} from {{ item.appointed_on | format_date }} to {% if item.resigned_on %} {{ item.resigned_on | format_date }} {% else %} present {% endif %}</li>
+                    <li><a href="{{ item.links.officer.appointments }}">{{ item.name }}</a> - {{ item.officer_role }} from {{ item.appointed_on | format_date }} to {% if item.resigned_on %} {{ item.resigned_on | format_date }} {% else %} present {% endif %}</li>
                 {% endfor %}
 
                 <pre>{{ context.officers_data | tojson(indent=2) }}</pre>

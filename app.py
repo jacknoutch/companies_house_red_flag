@@ -71,8 +71,11 @@ def officer(officer_id):
     )
     data = response.json()
 
-    return f"API response: {data}"
+    context = {
+        "officer_data": data,
+    }
 
+    return render_template("appointments.html", context=context)
 
 @app.route('/companies/officer/<string:officer_id>', methods=['GET'])
 def officer_companies(officer_id):
@@ -80,7 +83,11 @@ def officer_companies(officer_id):
     response = requests.get(api_url, auth=(companies_house_api_key, ''))
     data = response.json()
 
-    return f"API response: {data}"
+    context = {
+        "officer_data": data,
+    }
+
+    return render_template("index.html", context=context)
 
 
 @app.route('/search/officer/<string:query>', methods=['GET'])
