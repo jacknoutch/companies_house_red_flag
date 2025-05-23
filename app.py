@@ -15,7 +15,7 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY')
 load_dotenv()
 companies_house_api_key = os.getenv('COMPANIES_HOUSE_API_KEY')
 
-# Custom filtesr
+# Custom filters
 @app.template_filter('format_date')
 def format_date(date_str):
     """Format date string from YYYY-MM-DD to DD MMM YYYY."""
@@ -62,12 +62,11 @@ def index(company_number=None):
 
 
 
-@app.route('/officers/<string:query>', methods=['GET'])
-def officer(query):
-    api_url = f"https://api.company-information.service.gov.uk/search/officers"
+@app.route('/officers/<string:officer_id>/appointments', methods=['GET'])
+def officer(officer_id):
+    api_url = f"https://api.company-information.service.gov.uk/officers/{officer_id}/appointments"
     response = requests.get(
         api_url,
-        params={"q": query,},
         auth=(companies_house_api_key, '')
     )
     data = response.json()
@@ -84,12 +83,35 @@ def officer_companies(officer_id):
     return f"API response: {data}"
 
 
+@app.route('/search/officer/<string:query>', methods=['GET'])
+def search_officer(query):
+    api_url = f"https://api.company-information.service.gov.uk/search/officers"
+    response = requests.get(
+        api_url,
+        params={
+            "q": query,
+            "items_per_page": 1000,
+        },
+        auth=(companies_house_api_key, '')
+    )
+    officer_data = response.json()
+
+    context = {
+        "officer_data": officer_data
+    }
+
+    return render_template("search.html", context=context)
+
+
 @app.route('/search/company/<string:query>', methods=['GET'])
 def search_company(query):
     api_url = f"https://api.company-information.service.gov.uk/search/companies"
     response = requests.get(
         api_url,
-        params={"q": query,},
+        params={
+            "q": query,
+            "items_per_page": 1000,
+        },
         auth=(companies_house_api_key, '')
     )
     company_data = response.json()
@@ -118,6 +140,11 @@ def handle_data():
     if company_name:
     
         return redirect(url_for('search_company', query=company_name))
+    
+    officer_name = request.form.get('officer_name')
+    if officer_name:
+
+        return redirect(url_for('search_officer', query=officer_name))
     
     flash("Please enter valid form details and resubmit.")
     return redirect(url_for('index'))

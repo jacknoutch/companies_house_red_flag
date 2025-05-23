@@ -1,7 +1,9 @@
 <form action="{{ url_for('handle_data') }}" method="POST">
     <label for="company_name">Company Name:</label>
-    <input type="text" id="company_name" name="company_name" placeholder="Search" >
+    <input type="text" id="company_name" name="company_name" placeholder="Search company" > <br/>
+    <label for="company_name">Officer Name:</label>
+    <input type="text" id="officer_name" name="officer_name" placeholder="Search officer" ><br/>
     <label for="company_number">Company Number:</label>
-    <input type="text" id="company_number" name="company_number">
+    <input type="text" id="company_number" name="company_number" placeholder="00000000"><br/>
     <button type="submit">Search</button>
 </form>

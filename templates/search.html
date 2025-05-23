@@ -20,4 +20,20 @@
     
     {% endif %}
 
+    {% if context.officer_data %}
+    
+        <ul>
+
+            {% for item in context.officer_data["items"] %}
+            
+                <li><a href="{{ item.links.self }}">{{ item.title }}</a> - {{ item.description }}</li>
+            
+            {% endfor %}
+
+        </ul>
+
+        <pre>{{ context.officer_data | tojson(indent=2) }}</pre>
+    
+    {% endif %}
+
 {% endblock %}
