@@ -1,11 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <form action="{{ url_for('handle_data') }}" method="POST">
-        <label for="company_number">Company Number:</label>
-        <input type="text" id="company_number" name="company_number" required>
-        <button type="submit">Search</button>
-    </form>
+
+    {% include "search_form.html" %}
 
     {% if context.company_data %}
         <h2>{{ context.company_name }}</h2>

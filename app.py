@@ -4,15 +4,16 @@ import os
 # Third party imports
 import requests
 from dotenv import load_dotenv
-from flask import Flask, redirect, request, render_template
+from flask import flash, Flask, redirect, request, render_template, url_for
 
 app = Flask(__name__)
 
+# Set a secret key for the Flask app
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+
+# Set environment variables
 load_dotenv()
-
-# Get the environment variable for the Companies House API key
 companies_house_api_key = os.getenv('COMPANIES_HOUSE_API_KEY')
-
 
 # Custom filtesr
 @app.template_filter('format_date')
@@ -33,7 +34,7 @@ def format_date(date_str):
 
 
 @app.route('/', methods=['GET'])
-@app.route('/<string:company_number>', methods=['GET'])
+@app.route('/company/<string:company_number>', methods=['GET'])
 def index(company_number=None):
 
     data = None
@@ -83,9 +84,40 @@ def officer_companies(officer_id):
     return f"API response: {data}"
 
 
+@app.route('/search/company/<string:query>', methods=['GET'])
+def search_company(query):
+    api_url = f"https://api.company-information.service.gov.uk/search/companies"
+    response = requests.get(
+        api_url,
+        params={"q": query,},
+        auth=(companies_house_api_key, '')
+    )
+    company_data = response.json()
+
+    context = {
+        "company_data": company_data
+    }
+
+    return render_template("search.html", context=context)
+
+
 @app.route('/handle_data', methods=['POST'])
 def handle_data():
-    # Handle the data sent from the form
-    data = request.form['company_number']
-    # Process the data as needed
-    return redirect('/' + data)
+    
+    company_number = request.form.get('company_number')
+    if company_number:
+        
+        # Validate the company number; it must be a string of 8 characters
+        if not isinstance(company_number, str) or len(company_number) != 8:
+            flash("Invalid company number. It must be a string of 8 characters.")
+            return redirect(url_for('index'))
+        
+        return redirect(url_for('index', company_number=company_number))
+
+    company_name = request.form.get('company_name')
+    if company_name:
+    
+        return redirect(url_for('search_company', query=company_name))
+    
+    flash("Please enter valid form details and resubmit.")
+    return redirect(url_for('index'))

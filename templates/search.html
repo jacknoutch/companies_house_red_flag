@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% include "search_form.html" %}
+
+    {% if context.company_data %}
+    
+        <ul>
+
+            {% for item in context.company_data["items"] %}
+            
+                <li>{{ item.title }}</li>
+            
+            {% endfor %}
+
+        </ul>
+
+        <pre>{{ context.company_data | tojson(indent=2) }}</pre>
+    
+    {% endif %}
+
+{% endblock %}
