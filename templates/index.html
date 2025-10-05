@@ -7,6 +7,21 @@
     {% if context.company_data %}
         <h2>{{ context.company_name }}</h2>
 
+        {% if context.timeline_data %}
+
+            <h3>Timeline</h3>
+            <ul>
+                {% for event in context.timeline_data %}
+                    <li>{{ event.date | format_date }} - {{ event.description }}</li>
+                {% endfor %}
+            </ul>
+
+        {% else %}
+
+            <p>No timeline data available.</p>
+
+        {% endif %}
+
         {% if context.previous_company_names %}
 
             <em>Also previously known as:</em>

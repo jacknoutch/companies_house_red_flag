@@ -37,27 +37,37 @@ def format_date(date_str):
 @app.route('/company/<string:company_number>', methods=['GET'])
 def index(company_number=None):
 
-    data = None
+    company_data = None
 
     get_company_url = f"https://api.company-information.service.gov.uk/company/{company_number}"
 
     response = requests.get(get_company_url, auth=(companies_house_api_key, ''))
-    data = response.json()
+    company_data = response.json()
 
-    company_name = data.get('company_name')
-    previous_company_names = data.get('previous_company_names', [])
+    company_name = company_data.get('company_name')
+    previous_company_names = company_data.get('previous_company_names', [])
 
     get_company_officers_url = f"https://api.company-information.service.gov.uk/company/{company_number}/officers"
     officers_response = requests.get(get_company_officers_url, auth=(companies_house_api_key, ''))
     officers_data = officers_response.json()
 
+    company_events = get_company_events(company_data)
+    officer_events = get_officer_events(officers_data)
+
+    timeline_events = [
+        event for event in company_events + officer_events
+    ]
+
+    timeline_events.sort(key=lambda x: x['date'])
+
     context = {
-        'company_data': data,
+        'company_data': company_data,
         'company_name': company_name,
         'previous_company_names': previous_company_names,
         'officers_data': officers_data,
+        'timeline_data': timeline_events,
     }
-    
+
     return render_template('index.html', context=context)
 
 
@@ -155,3 +165,42 @@ def handle_data():
     
     flash("Please enter valid form details and resubmit.")
     return redirect(url_for('index'))
+
+
+def get_company_events(company_data):
+    events = []
+    if 'date_of_creation' in company_data:
+        events.append({
+            "date": company_data.get('date_of_creation'),
+            "description": "Company created"
+        })
+
+    if 'previous_company_names' in company_data:
+        for name_change in company_data['previous_company_names']:
+            events.append({
+                "date": name_change.get('effective_from'),
+                "description": f"Company name changed to: {name_change.get('name')}"
+            })
+            events.append({
+                "date": name_change.get('ceased_on'),
+                "description": f"Company name changed from: {name_change.get('name')}"
+            })
+    return events
+
+
+def get_officer_events(officer_data):
+    events = []
+    if 'items' in officer_data:
+        for officer in officer_data['items']:
+            if 'appointed_on' in officer:
+                events.append({
+                    "date": officer.get('appointed_on'),
+                    "description": f"Appointed as officer of company: {officer.get('name')}"
+                })
+            if 'resigned_on' in officer:
+                events.append({
+                    "date": officer.get('resigned_on'),
+                    "description": f"Resigned as officer of company: {officer.get('name')}"
+                })
+
+    return events
