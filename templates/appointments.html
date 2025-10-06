@@ -1,23 +1,24 @@
 {% extends "base.html" %}
 
-{% include "search_form.html" %}
-
 {% block content %}
 
-    {% if context.officer_data %}
+{% include "search_form.html" %}
+
+{% if context.officer_data %}
+
+<ul>
     
-        <ul>
+    {% for item in context.officer_data["items"] %}
+    
+    <li><a href="{{ item.links.company }}">{{ item.appointed_to.company_name }}</a> - from {{ item.appointed_on | format_date}} to {% if item.resigned_on %}{{ item.resigned_on | format_date}}{% else %}present{% endif %}</li>
+    
+    {% endfor %}
+    
+</ul>
 
-            {% for item in context.officer_data["items"] %}
-            
-                <li><a href="{{ item.links.company }}">{{ item.appointed_to.company_name }}</a> - from {{ item.appointed_on | format_date}} to {% if item.resigned_on %}{{ item.resigned_on | format_date}}{% else %}present{% endif %}</li>
-            
-            {% endfor %}
+<pre>{{ context.officer_data | tojson(indent=2) }}</pre>
 
-        </ul>
+{% endif %}
 
-        <pre>{{ context.officer_data | tojson(indent=2) }}</pre>
-
-    {% endif %}
 
 {% endblock content %}
