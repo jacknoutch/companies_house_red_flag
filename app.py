@@ -49,7 +49,7 @@ def index(company_number=None):
 
     get_company_officers_url = f"https://api.company-information.service.gov.uk/company/{company_number}/officers"
     officers_response = requests.get(get_company_officers_url, auth=(companies_house_api_key, ''))
-    officers_data = officers_response.json()
+    officers_data = officers_response.json()['items']
 
     company_events = get_company_events(company_data)
     officer_events = get_officer_events(officers_data)
@@ -79,10 +79,10 @@ def officer(officer_id):
         api_url,
         auth=(companies_house_api_key, '')
     )
-    data = response.json()
+    officer_data = response.json()
 
     context = {
-        "officer_data": data,
+        "officer_data": officer_data,
     }
 
     return render_template("appointments.html", context=context)
@@ -91,10 +91,11 @@ def officer(officer_id):
 def officer_companies(officer_id):
     api_url = f"https://api.company-information.service.gov.uk/officers/{officer_id}/appointments"
     response = requests.get(api_url, auth=(companies_house_api_key, ''))
-    data = response.json()
+    officer_data = response.json()['items']
+    officer_data.sort(key=lambda x: x['date of birth']['year'] if 'date of birth' in x and 'year' in x['date of birth'] else 0)
 
     context = {
-        "officer_data": data,
+        "officer_data": officer_data,
     }
 
     return render_template("index.html", context=context)
@@ -111,7 +112,9 @@ def search_officer(query):
         },
         auth=(companies_house_api_key, '')
     )
-    officer_data = response.json()
+    officer_data = response.json()['items']
+    officer_data = create_sort_dob_key(officer_data)
+    officer_data.sort(key=lambda x: x['dob_sort_key'])
 
     context = {
         "officer_data": officer_data
@@ -190,17 +193,29 @@ def get_company_events(company_data):
 
 def get_officer_events(officer_data):
     events = []
-    if 'items' in officer_data:
-        for officer in officer_data['items']:
-            if 'appointed_on' in officer:
-                events.append({
-                    "date": officer.get('appointed_on'),
-                    "description": f"Appointed as officer of company: {officer.get('name')}"
-                })
-            if 'resigned_on' in officer:
-                events.append({
-                    "date": officer.get('resigned_on'),
-                    "description": f"Resigned as officer of company: {officer.get('name')}"
-                })
+    for officer in officer_data:
+        if 'appointed_on' in officer:
+            events.append({
+                "date": officer.get('appointed_on'),
+                "description": f"Appointed as officer of company: {officer.get('name')}"
+            })
+        if 'resigned_on' in officer:
+            events.append({
+                "date": officer.get('resigned_on'),
+                "description": f"Resigned as officer of company: {officer.get('name')}"
+            })
 
     return events
+
+
+def create_sort_dob_key(officers):
+    for officer in officers:
+        year, month = extract_dob(officer)
+        officer['dob_sort_key'] = (year, month)
+    return officers
+
+
+def extract_dob(officer):
+    if 'date_of_birth' in officer and 'year' in officer['date_of_birth'] and 'month' in officer['date_of_birth']:
+        return officer['date_of_birth']['year'], officer['date_of_birth']['month']
+    return 0, 0

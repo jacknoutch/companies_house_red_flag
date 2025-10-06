@@ -24,7 +24,7 @@
     
         <ul>
 
-            {% for item in context.officer_data["items"] %}
+            {% for item in context.officer_data %}
             
                 <li><a href="{{ item.links.self }}">{{ item.title }}</a> - {{ item.description }}</li>
             

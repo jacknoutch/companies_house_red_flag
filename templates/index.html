@@ -39,7 +39,7 @@
         
             <ul>
                 
-                {% for item in context.officers_data['items'] %}
+                {% for item in context.officers_data %}
                     <li><a href="{{ item.links.officer.appointments }}">{{ item.name }}</a> - {{ item.officer_role }} from {{ item.appointed_on | format_date }} to {% if item.resigned_on %} {{ item.resigned_on | format_date }} {% else %} present {% endif %}</li>
                 {% endfor %}
 
